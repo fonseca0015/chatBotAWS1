@@ -311,11 +311,15 @@ Este software é o produto tecnológico resultante do **Projeto Integrador (PI)*
 ### 👥 Integrantes da Equipe
 | Integrante | Papel / Responsabilidade Principal
 
-| **Andreus Vinicius Araújo de Andrade** | Engenharia de Software e Análise de Requisitos
-| **Arthur do Amaral Barreto** | Testes, Métricas de Qualidade e Validação N1
-| **Cauã de Andrade Nogueira** | Engenharia de Dados, Ingestão e Base de Conhecimento
-| **Gabriel Fonseca de Lemos** | Infraestrutura, Orquestração n8n e Integrações
-| **Pedro Henrique Cardozo Dias** | Desenvolvimento Full Stack, Arquitetura RAG e Busca Híbrida
+| **Andreus Vinicius Araújo de Andrade** | Engenharia de Software e Análise de Requisitos 
+
+| **Arthur do Amaral Barreto** | Testes, Métricas de Qualidade e Validação N1 
+
+| **Cauã de Andrade Nogueira** | Engenharia de Dados, Ingestão e Base de Conhecimento 
+
+| **Gabriel Fonseca de Lemos** | Infraestrutura, Orquestração n8n e Integrações 
+
+| **Pedro Henrique Cardozo Dias** | Desenvolvimento Full Stack, Arquitetura RAG e Busca Híbrida 
 
 ---
 
