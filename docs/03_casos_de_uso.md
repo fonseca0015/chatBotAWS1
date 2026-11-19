@@ -1,7 +1,8 @@
-# Especificação de Casos de Uso
+# Especificação de Casos de Uso (Base Monografia FATEC)
 
 ## 1. Diagrama Geral de Casos de Uso
-O diagrama a seguir detalha as interações dos atores (Usuário, Gateway Telefônico e Suporte N1) com os casos de uso do sistema **ERP Helpper**.
+
+O diagrama a seguir sintetiza as interações entre os atores do sistema (**Usuário**, **Gateway Telefônico** e **Suporte N1**) e as funcionalidades do **ERP Helpper**, em estrita conformidade com a documentação do Projeto Integrador da FATEC Sorocaba.
 
 ```mermaid
 flowchart LR
@@ -13,7 +14,7 @@ flowchart LR
 
     subgraph Sistema ["Sistema ERP Helpper"]
         UC1["Consultar Duvida via Chat"]
-        UC2["Atender Chamada Telefonica"]
+        UC2["Realizar Atendimento por Voz"]
         UC3["Processar Banco Vetorial"]
         UC4["Escalonar para Suporte N1"]
         UC5["Registrar Erro ou Fallback"]
@@ -26,8 +27,11 @@ flowchart LR
     UC1 -.->|"include"| UC3
     UC2 -.->|"include"| UC3
 
-    UC3 -.->|"extend: Sem resposta satisfatoria"| UC4
-    UC3 -.->|"extend: Falha conexao ou transcricao"| UC5
+    UC1 -.->|"extend: Duvida complexa"| UC4
+    UC2 -.->|"extend: Duvida complexa"| UC4
+
+    UC1 -.->|"extend: Falha de conexao"| UC5
+    UC2 -.->|"extend: Falha de audio ou STT"| UC5
 
     UC4 --> SN1
 ```
@@ -38,43 +42,76 @@ flowchart LR
 
 | Ator | Tipo | Papel no Sistema |
 | :--- | :--- | :--- |
-| **Usuário** | Primário (Humano) | Colaborador/operador do UNO ERP que submete perguntas de texto ou liga para o canal de voz em busca de auxílio sobre rotinas do sistema. |
-| **Gateway Telefônico** | Secundário (Sistema) | Serviço de telefonia e VoIP (ex: Twilio) que estabelece e gerencia o canal de comunicação por voz entre o usuário e o fluxo do assistente. |
-| **Suporte N1** | Secundário (Humano) | Equipe de atendimento humano da parceira que recebe os casos de dúvida escalonados em situações atípicas ou não documentadas. |
+| **Usuário** | Primário (Humano) | Operador do UNO ERP que submete dúvidas pelo chat web ou via chamada telefônica. |
+| **Gateway Telefônico** | Secundário (Sistema) | Plataforma de telecomunicações (ex.: Twilio ConversationRelay / SIP VoIP) que gerencia a sessão de chamada, áudio e streaming duplex. |
+| **Suporte N1** | Secundário (Humano) | Equipe de atendimento humano da Uno Soluções que recebe os chamados de alta complexidade ou que extrapolam a base de conhecimento. |
 
 ---
 
-## 3. Especificação Detalhada de Casos de Uso
+## 3. Quadros Narrativos dos Casos de Uso (Detalhamento Baixo Nível)
 
-### Caso de Uso: RF04 - Consultar Dúvida
-
-| Campo | Descrição |
-| :--- | :--- |
-| **Identificador** | **UC01 / RF04** |
-| **Nome** | Consultar Dúvida (via Chat Web ou Voz) |
-| **Ator Principal** | Usuário |
-| **Atores Secundários** | Gateway Telefônico (no canal voz), Suporte N1 (em caso de escalonamento) |
-| **Pré-Condições** | 1. O usuário tem acesso à interface web ou ao número do canal de voz.<br>2. O servidor da Search API e o banco vetorial ChromaDB estão ativos.<br>3. Credenciais da API OpenAI e fluxos do n8n estão operacionais. |
-| **Pós-Condições** | O usuário recebe uma resposta fundamentada na documentação do UNO ERP com formatação clara e links de fontes oficiais, ou mensagem amigável de contingência/escalonamento. |
-
-#### Fluxo Principal de Ações (Quadro 1 da Análise)
+### Quadro 1. Caso de Uso: Realizar Atendimento por Voz / Atender Chamada Telefônica
+- **Requisitos Atendidos:** RF01, RF02, RF03, RF04, RF07, RF08, RF09, RF10
+- **Ator Principal:** Usuário
+- **Ator Secundário:** Gateway Telefônico
+- **Pré-Condição:** O usuário liga para o número da Uno Soluções e a chamada é roteada para o ERP Helpper. A Search API e o banco vetorial estão online.
+- **Pós-Condição:** Uma resposta precisa fundamentada na documentação é falada ao usuário via síntese de voz (TTS ElevenLabs), com proposta de resolução.
 
 | Passo | Ação do Ator | Ação do Sistema |
 | :---: | :--- | :--- |
-| **1** | O usuário acessa a funcionalidade "Consultar Dúvida" (chat web ou chamada telefônica). | |
-| **2** | | O sistema apresenta o campo para inserção da pergunta (ou inicia a escuta telefônica com saudação). |
-| **3** | O usuário digita ou fala a sua dúvida e submete a mensagem. | |
-| **4** | | O sistema recebe a pergunta, valida sintaticamente e normaliza os caracteres. |
-| **5** | | O sistema executa a **vetorização da pergunta**, gerando embeddings via modelo OpenAI (`text-embedding-3-small`). |
-| **6** | | O sistema compara os vetores gerados com o banco vetorial ChromaDB, executando busca semântica por similaridade de cosseno somada à busca lexical por palavras-chave. |
-| **7** | | O sistema identifica os documentos mais relevantes através de reclassificação (*reranking* com `gpt-4o-mini`) e compõe a resposta contextualizada via n8n. |
-| **8** | | O sistema devolve a resposta final ao usuário (em HTML no chat ou sintetizada em áudio de voz com ElevenLabs). |
+| **1** | O usuário realiza a ligação telefônica para o suporte. | |
+| **2** | | O Gateway Telefônico atende a chamada e o sistema emite saudação cordial convidando o usuário a expor a dúvida. |
+| **3** | O usuário fala a sua dúvida (ex.: *"Estou com a rejeição 201 ao emitir nota fiscal"*). | |
+| **4** | | O sistema converte a fala em texto em tempo real (Speech-to-Text) com detecção de turnos (Duplex). |
+| **5** | | O sistema consulta a base vetorial e resgata os trechos pertinentes. |
+| **6** | | O sistema sintetiza uma resposta oral concisa e objetiva (sem markdown e sem links) através do modelo gerador e do ElevenLabs. |
+| **7** | | O áudio gerado é transmitido na ligação telefônica de volta ao usuário. |
 
-#### Fluxos Alternativos e de Exceção
+---
 
-- **Fluxo Alternativo A1 - Match Exato de Código de Rejeição (ex: Rejeição 201):**
-  - No passo 6, se a dúvida contiver padrões como `rejeição 201`, o algoritmo de busca identifica o documento específico (ID 314) com prioridade máxima e ignora o custo do LLM Reranker, acelerando a resposta.
-- **Fluxo de Exceção E1 - Documentação Insuficiente (Escalonamento para Suporte N1):**
-  - Se a busca no banco vetorial não retornar trechos com score de similaridade aceitável, o sistema emite resposta informando a ausência de dados na base e encaminha o ticket/protocolo para a fila do Suporte N1.
-- **Fluxo de Exceção E2 - Falha de Conectividade ou Ausência de Tokens de API:**
-  - Caso haja indisponibilidade de rede ou falha na chamada da OpenAI/ElevenLabs, o sistema captura a exceção, registra log de auditoria no servidor e aciona mensagem de contingência ao usuário ("*Serviço momentaneamente indisponível. Por favor contate o suporte*").
+### Quadro 2. Caso de Uso: Processar Banco Vetorial
+- **Requisitos Atendidos:** RF03, RF06
+- **Ator Principal:** Usuário / Desenvolvedor
+- **Ator Secundário:** Suporte N1
+- **Pré-Condição:** O sistema deve acessar a documentação e histórico de procedimentos homologados da Uno Soluções e prepará-los para o pipeline RAG.
+- **Pós-Condição:** Os textos estão fatiados em chunks, vetorizados via `text-embedding-3-small` e indexados no ChromaDB com métrica de similaridade de cosseno.
+
+| Passo | Ação do Ator | Ação do Sistema |
+| :---: | :--- | :--- |
+| **1** | O desenvolvedor/administrador inicia a API ou insere novos manuais em `knowledge_base.json`. | |
+| **2** | | O sistema fatiará o conteúdo em chunks com a biblioteca `tiktoken` (`max_tokens=2000`, `overlap=500`). |
+| **3** | | O sistema envia os lotes para a API da OpenAI gerando embeddings de 1536 dimensões. |
+| **4** | | Os vetores e metadados estruturados são persistidos no ChromaDB (`docs_uno_erp_cosine`). |
+| **5** | | A base fica pronta para buscas semânticas ultrarrápidas em produção. |
+
+---
+
+### Quadro 3. Caso de Uso: Registrar Erro / Fallback
+- **Requisitos Atendidos:** RNF07, RNF09
+- **Ator Principal:** Usuário
+- **Ator Secundário:** Sistema de Monitoramento / Suporte N1
+- **Pré-Condição:** O sistema reconhece falha na transcrição de áudio por excesso de ruído, indisponibilidade momentânea de rede ou falta de saldo em provedores de IA.
+- **Pós-Condição:** O usuário é informado educadamente sobre a instabilidade e o sistema registra log de contingência, oferecendo repetição da dúvida.
+
+| Passo | Ação do Ator | Ação do Sistema |
+| :---: | :--- | :--- |
+| **1** | O usuário submete uma mensagem ininteligível ou a chamada telefônica sofre perda de pacotes. | |
+| **2** | | O sistema detecta o erro ou baixa confiança na transcrição. |
+| **3** | | O sistema informa: *"Desculpe, não consegui entender com clareza. Você poderia repetir ou reformular?"* |
+| **4** | | O erro é gravado nos logs do servidor para auditoria da equipe técnica. |
+
+---
+
+### Quadro 4. Caso de Uso: Escalonar para o Suporte N1
+- **Requisitos Atendidos:** RF05
+- **Ator Principal:** Usuário
+- **Ator Secundário:** Suporte N1 (Humano)
+- **Pré-Condição:** O sistema reconhece que a dúvida não consta na documentação oficial ou que o problema exige intervenções manuais no banco de dados do ERP.
+- **Pós-Condição:** O atendimento é redirecionado para a fila de atendimento humano do Suporte N1 da Uno Soluções.
+
+| Passo | Ação do Ator | Ação do Sistema |
+| :---: | :--- | :--- |
+| **1** | O usuário relata uma situação crítica ou inconsistência interna do ERP que não possui solução em manuais. | |
+| **2** | | O RAG processa a busca e constata ausência de trechos satisfatórios no ChromaDB. |
+| **3** | | O agente informa: *"Não localizei essa rotina na base de conhecimento. Estou transferindo você para a nossa equipe de suporte N1."* |
+| **4** | | O ticket ou a chamada é encaminhado para o atendente humano com o histórico da conversa pré-carregado. |

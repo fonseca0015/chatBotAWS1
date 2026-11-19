@@ -25,7 +25,8 @@
 - [9. Estrutura de Diretórios e Documentação Modular](#9-estrutura-de-diretórios-e-documentação-modular)
 - [10. Integração Contínua (CI / GitHub Actions)](#10-integração-contínua-ci--github-actions)
 - [11. Histórico de Problemas e Mitigações de Custos](#11-histórico-de-problemas-e-mitigações-de-custos)
-- [12. Autoria e Licença](#12-autoria-e-licença)
+- [12. Projeto Integrador — FATEC e Equipe](#12-projeto-integrador--fatec-e-equipe)
+- [13. Licença](#13-licença)
 
 ---
 
@@ -253,7 +254,8 @@ chatBotAWS1/
 │   ├── 08_tecnologias_e_integracoes.md  # Stack, ferramentas e referências
 │   ├── 09_guia_execucao_local.md      # Manual de execução local (Web, Voz e n8n)
 │   ├── 10_guia_deploy.md              # Deploy AWS, Docker, Nginx, SSL e Links
-│   └── 11_workflow_n8n.md             # Documentação completa do fluxo n8n
+│   ├── 11_workflow_n8n.md             # Documentação completa do fluxo n8n
+│   └── 12_fundamentacao_teorica_e_metricas.md # Embasa­mento teórico, KPIs e referências ABNT
 ├── n8n/
 │   └── workflow_uno_erp_helpper.json  # Workflow oficial exportado para importação
 ├── test_api.py                        # Script de validação e testes da Search API / Webhook
@@ -293,9 +295,36 @@ Para leitura completa do relatório executivo, veja o [Relatório de Riscos e Cu
 
 ---
 
-## 12. Autoria e Licença
+## 12. Projeto Integrador — FATEC Sorocaba
 
-- **Projeto:** ERP Helpper — Assistente Inteligente para UNO ERP
-- **Alinhamento e Homologação:** Tiago Garcia Amato & Cesar
-- **Desenvolvimento:** Equipe de Engenharia do Projeto UNO ERP Helpper
-- **Licença:** Este projeto é distribuído para uso e homologação no escopo da parceria UNO ERP.
+Este software é o produto tecnológico resultante do **Projeto Integrador (PI)** apresentado à **Faculdade de Tecnologia de Sorocaba — José Crespo Gonzales (FATEC Sorocaba)**, vinculada ao **Centro Paula Souza (CPS)** e ao Governo do Estado de São Paulo, como parte dos pré-requisitos para obtenção do título de **Tecnólogo em Análise e Desenvolvimento de Sistemas** do programa de Articulação da Formação Profissional Média e Superior (**AMS**).
+
+- **Instituição:** Faculdade de Tecnologia de Sorocaba — José Crespo Gonzales (FATEC Sorocaba)
+- **Centro:** Centro Paula Souza (CPS) — Governo do Estado de São Paulo
+- **Curso:** Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas (AMS)
+- **Disciplina:** Projeto Integrador — Documentação de Desenvolvimento de Software
+- **Orientador:** Prof. Antônio Cesar de Barros Munari
+- **Empresa Parceira:** Uno Soluções / UNO ERP
+- **Representante da Empresa:** Tiago Garcia Amato
+- **Local e Data:** Sorocaba/SP — Fevereiro a Dezembro de 2026
+
+### 👥 Integrantes da Equipe
+| Integrante | Papel / Responsabilidade Principal |
+| :--- | :--- | :--- |
+| **Andreus Vinicius Araújo de Andrade** | Engenharia de Software e Análise de Requisitos
+| **Arthur do Amaral Barreto** | Testes, Métricas de Qualidade e Validação N1
+| **Cauã de Andrade Nogueira** | Engenharia de Dados, Ingestão e Base de Conhecimento
+| **Gabriel Fonseca de Lemos** | Infraestrutura, Orquestração n8n e Integrações
+| **Pedro Henrique Cardozo Dias** | Desenvolvimento Full Stack, Arquitetura RAG e Busca Híbrida
+
+---
+
+### 📖 Resumo Acadêmico do Projeto
+> *"O projeto consiste no desenvolvimento e implementação de um agente de Inteligência Artificial integrado ao ERP da Uno Soluções, com o objetivo de automatizar o atendimento de dúvidas e problemas comuns dos usuários. A solução utilizará uma base de conhecimento com materiais públicos e privados da empresa, permitindo fornecer respostas claras e objetivas por meio de chat web e chamada telefônica, utilizando tecnologias de reconhecimento e geração de voz para proporcionar uma conversa natural. O sistema é capaz de consultar informações via RAG, responder a dúvidas recorrentes e encaminhar automaticamente os casos mais complexos para a equipe humana de suporte N1, agilizando o atendimento e elevando a eficiência operacional."*  
+> **Palavras-chave:** Inteligência Artificial; ERP; Atendimento Automatizado; RAG; ElevenLabs; n8n.
+
+---
+
+## 13. Licença
+
+Este projeto é desenvolvido para fins acadêmicos e de homologação técnica junto à empresa parceira UNO ERP, sob os termos e diretrizes de propriedade intelectual do Projeto Integrador da FATEC.
