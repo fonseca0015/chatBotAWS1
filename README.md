@@ -190,9 +190,10 @@ Copy-Item .env.example .env
 # Linux/macOS
 cp .env.example .env
 ```
-Edite o arquivo `.env` inserindo sua chave da OpenAI:
+Edite o arquivo `.env` inserindo suas chaves da OpenAI e da ElevenLabs:
 ```dotenv
 OPENAI_API_KEY=sk-proj-sua-chave-aqui
+ELEVENLABS_API_KEY=sua-chave-elevenlabs-aqui
 ```
 
 ### 5. Iniciar a API de Busca
@@ -201,17 +202,17 @@ python main.py
 ```
 > O ChromaDB será carregado ou populado automaticamente a partir do arquivo `knowledge_base.json` (531 artigos). O servidor responderá na porta `5000`.
 
-### 6. Testar o Endpoint `/search`
+### 6. Testar o Canal de Voz (ElevenLabs + RAG)
+Em outro terminal (com o ambiente virtual ativado), execute a simulação do canal de voz:
 ```bash
-curl -X POST http://127.0.0.1:5000/search \
-  -H "Content-Type: application/json" \
-  -d '{"pergunta": "Como tratar a rejeição 201?"}'
+python test_voice.py "Como tratar a rejeição 201?"
 ```
+> O script recupera o contexto documental, sintetiza a fala com a API da **ElevenLabs** e gera o arquivo `resposta_voz.mp3` na raiz do projeto para você ouvir a IA falando imediatamente!
 
 ### 7. Abrir o Chat Web
 Dê dois cliques no arquivo `index.html` ou execute `python -m http.server 8080` e acesse `http://localhost:8080`.
 
-Consulte o passo a passo ilustrado em [Guia de Execução Local](docs/09_guia_execucao_local.md).
+Consulte o passo a passo ilustrado com n8n e ngrok em [Guia de Execução Local](docs/09_guia_execucao_local.md).
 
 ---
 
@@ -250,12 +251,13 @@ chatBotAWS1/
 │   ├── 06_pipeline_search_atividades.md # Diagrama de Atividades detalhado do /search
 │   ├── 07_relatorio_riscos_e_custos.md  # Análise de custos ElevenLabs, n8n e OpenAI
 │   ├── 08_tecnologias_e_integracoes.md  # Stack, ferramentas e referências
-│   ├── 09_guia_execucao_local.md      # Manual de configuração local detalhado
+│   ├── 09_guia_execucao_local.md      # Manual de execução local (Web, Voz e n8n)
 │   ├── 10_guia_deploy.md              # Deploy AWS, Docker, Nginx, SSL e Links
 │   └── 11_workflow_n8n.md             # Documentação completa do fluxo n8n
 ├── n8n/
 │   └── workflow_uno_erp_helpper.json  # Workflow oficial exportado para importação
-├── test_api.py                        # Script de validação e testes da API
+├── test_api.py                        # Script de validação e testes da Search API / Webhook
+├── test_voice.py                      # Simulador do Canal de Voz com ElevenLabs TTS
 ├── .env.example                       # Modelo de variáveis de ambiente
 ├── .gitignore                         # Regras de exclusão do Git
 ├── Dockerfile                         # Imagem Docker da aplicação

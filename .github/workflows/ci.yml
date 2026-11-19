@@ -30,13 +30,14 @@ jobs:
         run: |
           python -m py_compile main.py
           python -m py_compile test_api.py
+          python -m py_compile test_voice.py
 
       - name: Validação Estática com Flake8
         run: |
           # Interrompe o build se houver erros críticos de sintaxe
-          flake8 main.py test_api.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 main.py test_api.py test_voice.py --count --select=E9,F63,F7,F82 --show-source --statistics
           # Alertas leves sem falhar
-          flake8 main.py test_api.py --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
+          flake8 main.py test_api.py test_voice.py --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
 
       - name: Validar Integridade da Base de Conhecimento JSON
         run: |
