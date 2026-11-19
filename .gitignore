@@ -1,3 +1,29 @@
-.env
+# Ambiente Virtual
+venv/
+.venv/
+env/
+ENV/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Variáveis de ambiente sensíveis
+.env
+.env.local
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Logs e temporários
+*.log
+tmp/
