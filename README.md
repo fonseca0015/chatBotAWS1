@@ -309,8 +309,8 @@ Este software é o produto tecnológico resultante do **Projeto Integrador (PI)*
 - **Local e Data:** Sorocaba/SP — Fevereiro a Dezembro de 2026
 
 ### 👥 Integrantes da Equipe
-| Integrante | Papel / Responsabilidade Principal |
-| :--- | :--- | :--- |
+| Integrante | Papel / Responsabilidade Principal
+
 | **Andreus Vinicius Araújo de Andrade** | Engenharia de Software e Análise de Requisitos
 | **Arthur do Amaral Barreto** | Testes, Métricas de Qualidade e Validação N1
 | **Cauã de Andrade Nogueira** | Engenharia de Dados, Ingestão e Base de Conhecimento
