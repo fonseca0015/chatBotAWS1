@@ -26,31 +26,47 @@ jobs:
           pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Validar Sintaxe do Python (py_compile)
+      - name: Validar Sintaxe dos Scripts Python
         run: |
           python -m py_compile main.py
+          python -m py_compile test_api.py
 
-      - name: Validação Estática com Flake8 (Erros críticos de sintaxe)
+      - name: Validação Estática com Flake8
         run: |
-          # Para a execução se houver erros de sintaxe do Python ou nomes indefinidos
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Avisos leves (complexidade, estilo) sem quebrar o build
-          flake8 . --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
+          # Interrompe o build se houver erros críticos de sintaxe
+          flake8 main.py test_api.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Alertas leves sem falhar
+          flake8 main.py test_api.py --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
 
-      - name: Validar Integridade do Arquivo knowledge_base.json
+      - name: Validar Integridade da Base de Conhecimento JSON
         run: |
           python -c "
           import json, os
           file_path = 'knowledge_base.json'
           if not os.path.exists(file_path):
-              raise FileNotFoundError(f'{file_path} não foi encontrado.')
+              raise FileNotFoundError(f'{file_path} não encontrado.')
           with open(file_path, 'r', encoding='utf-8') as f:
               data = json.load(f)
-          print(f'knowledge_base.json validado com sucesso! Total de itens raiz: {len(data)}')
+          print(f'knowledge_base.json validado com sucesso! Total de artigos: {len(data)}')
           "
 
-      - name: Verificar Existência de Arquivos Críticos de Configuração
+      - name: Validar Integridade do Workflow do n8n
+        run: |
+          python -c "
+          import json, os
+          file_path = 'n8n/workflow_uno_erp_helpper.json'
+          if not os.path.exists(file_path):
+              raise FileNotFoundError(f'{file_path} não encontrado.')
+          with open(file_path, 'r', encoding='utf-8') as f:
+              wf = json.load(f)
+          assert 'nodes' in wf, 'O workflow precisa conter nodes.'
+          print(f'Workflow n8n validado com sucesso! Total de nós: {len(wf[\"nodes\"])}')
+          "
+
+      - name: Verificar Existência de Arquivos Críticos de Configuração e Docs
         run: |
           test -f .env.example || { echo ".env.example ausente"; exit 1; }
           test -f index.html || { echo "index.html ausente"; exit 1; }
+          test -f README.md || { echo "README.md ausente"; exit 1; }
+          test -d docs || { echo "pasta docs ausente"; exit 1; }
           echo "Todos os arquivos essenciais estão presentes no repositório."

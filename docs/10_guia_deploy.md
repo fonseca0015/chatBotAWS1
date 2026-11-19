@@ -1,15 +1,17 @@
 # Guia de Deploy da Aplicação
 
-Este documento descreve as alternativas e o passo a passo para realizar o deploy em produção do ecossistema do **ERP Helpper**, incluindo a Search API (Flask + ChromaDB) e a interface Web.
+Este documento descreve as alternativas e o passo a passo para realizar o deploy em produção do ecossistema do **ERP Helpper**, incluindo a Search API (Flask + ChromaDB), a orquestração no n8n e a interface Web.
 
 ---
 
-## 1. Links de Deploy e Acesso à Aplicação
+## 1. Links de Deploy e Endpoints da Aplicação
 
-> **Ambiente de Homologação / Demonstração:**  
-> - **Frontend Web (Chatbot):** [https://fonseca0015.github.io/chatBotAWS1/](https://fonseca0015.github.io/chatBotAWS1/) *(ou seu domínio configurado)*  
-> - **Endpoint da Search API:** `https://api.erphelpper.com.br/search` *(ou IP da instância AWS EC2 / Render)*  
-> - **Webhook do n8n:** `https://unoerpai.app.n8n.cloud/webhook/c7683d30-5ffb-448b-a9cb-2dac0ac443bb`
+| Componente | Ambiente | URL / Endpoint |
+| :--- | :--- | :--- |
+| 🌐 **Frontend Web (Chatbot)** | Produção (GitHub Pages) | [https://fonseca0015.github.io/chatBotAWS1/](https://fonseca0015.github.io/chatBotAWS1/) |
+| ⚡ **Search API (Flask/ChromaDB)** | Produção (AWS EC2) | `http://44.203.191.31:5000/search` |
+| 🔄 **Webhook do n8n (Orquestrador)** | Produção (n8n Cloud) | `https://unoerpai.app.n8n.cloud/webhook/c7683d30-5ffb-448b-a9cb-2dac0ac443bb` |
+| 📦 **Workflow n8n Exportado** | Repositório | [`n8n/workflow_uno_erp_helpper.json`](../n8n/workflow_uno_erp_helpper.json) |
 
 ---
 
@@ -48,7 +50,7 @@ Para garantir alta disponibilidade e latência mínima sem oscilações de túne
 1. **Provisionar Instância:**
    - Tipo de Instância: `t3.medium` ou `t3.small` (mínimo de 2 GB de RAM para embeddings e ChromaDB).
    - Sistema Operacional: Ubuntu Server 24.04 / 22.04 LTS.
-   - Security Group: Liberar portas 22 (SSH), 80 (HTTP) e 443 (HTTPS).
+   - Security Group: Liberar portas 22 (SSH), 80 (HTTP), 443 (HTTPS) e 5000 (Custom TCP caso queira acesso direto da API).
 
 2. **Instalar Dependências no Servidor:**
    ```bash
@@ -77,7 +79,7 @@ Para garantir alta disponibilidade e latência mínima sem oscilações de túne
    User=ubuntu
    WorkingDirectory=/var/www/erphelpper
    EnvironmentFile=/var/www/erphelpper/.env
-   ExecStart=/var/www/erphelpper/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 main:app
+   ExecStart=/var/www/erphelpper/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5000 main:app
    Restart=always
 
    [Install]
@@ -88,29 +90,6 @@ Para garantir alta disponibilidade e latência mínima sem oscilações de túne
    sudo systemctl daemon-reload
    sudo systemctl start erphelpper
    sudo systemctl enable erphelpper
-   ```
-
-5. **Configurar Reverse Proxy no Nginx (`/etc/nginx/sites-available/erphelpper`):**
-   ```nginx
-   server {
-       server_name api.seudominio.com.br;
-
-       location / {
-           proxy_pass http://127.0.0.1:5000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_connect_timeout 60s;
-           proxy_read_timeout 60s;
-       }
-   }
-   ```
-   Ativar e gerar certificado SSL gratuito:
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/erphelpper /etc/nginx/sites-enabled/
-   sudo nginx -t && sudo systemctl reload nginx
-   sudo apt install -y certbot python3-certbot-nginx
-   sudo certbot --nginx -d api.seudominio.com.br
    ```
 
 ---
@@ -146,4 +125,3 @@ Durante o desenvolvimento ou testes rápidos para expor a máquina local ao n8n 
 ngrok http 5000
 ```
 Copie a URL `https://xxxx.ngrok-free.app` gerada e configure-a como destino HTTP no nó de consulta do fluxo do n8n.
-*(Lembrando que para produção, conforme o relatório de riscos, recomenda-se servidor com IP/domínio permanente)*.

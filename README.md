@@ -15,16 +15,17 @@
 
 ## 📌 Sumário
 - [1. Visão Geral e Contexto](#1-visão-geral-e-contexto)
-- [2. Links de Deploy e Acesso](#2-links-de-deploy-e-acesso)
+- [2. Links de Deploy e Endpoints](#2-links-de-deploy-e-endpoints)
 - [3. Arquitetura da Solução](#3-arquitetura-da-solução)
 - [4. Requisitos do Sistema (RF e RNF)](#4-requisitos-do-sistema-rf-e-rnf)
-- [5. Tecnologias Utilizadas](#5-tecnologias-utilizadas)
-- [6. Como Rodar o Projeto Localmente](#6-como-rodar-o-projeto-localmente)
-- [7. Execução com Docker](#7-execução-com-docker)
-- [8. Estrutura de Diretórios e Documentação Modular](#8-estrutura-de-diretórios-e-documentação-modular)
-- [9. Integração Contínua (CI / GitHub Actions)](#9-integração-contínua-ci--github-actions)
-- [10. Histórico de Problemas e Mitigações de Custos](#10-histórico-de-problemas-e-mitigações-de-custos)
-- [11. Autoria e Licença](#11-autoria-e-licença)
+- [5. Workflow do n8n (Exportado e Documentado)](#5-workflow-do-n8n-exportado-e-documentado)
+- [6. Tecnologias Utilizadas](#6-tecnologias-utilizadas)
+- [7. Como Rodar o Projeto Localmente](#7-como-rodar-o-projeto-localmente)
+- [8. Execução com Docker](#8-execução-com-docker)
+- [9. Estrutura de Diretórios e Documentação Modular](#9-estrutura-de-diretórios-e-documentação-modular)
+- [10. Integração Contínua (CI / GitHub Actions)](#10-integração-contínua-ci--github-actions)
+- [11. Histórico de Problemas e Mitigações de Custos](#11-histórico-de-problemas-e-mitigações-de-custos)
+- [12. Autoria e Licença](#12-autoria-e-licença)
 
 ---
 
@@ -41,16 +42,17 @@ O **ERP Helpper** é um agente de Inteligência Artificial multicanal projetado 
 
 ---
 
-## 2. Links de Deploy e Acesso
+## 2. Links de Deploy e Endpoints
 
-| Canal / Recurso | Status | Link de Acesso |
-| :--- | :---: | :--- |
-| 🌐 **Frontend Web (Chat)** | Online | [Acessar Interface do Chatbot](https://fonseca0015.github.io/chatBotAWS1/) |
-| ⚡ **Search API (Flask/ChromaDB)** | Ativo | `http://127.0.0.1:5000/search` *(ou endpoint de produção)* |
-| 🔄 **Webhook do Orquestrador (n8n)** | Ativo | `https://unoerpai.app.n8n.cloud/webhook/c7683d30-5ffb-448b-a9cb-2dac0ac443bb` |
-| 📞 **Gateway Telefônico (Canal de Voz)** | Homologação | Integração via Twilio / ElevenLabs |
+| Recurso | Ambiente | Status | Link de Acesso |
+| :--- | :--- | :---: | :--- |
+| 🌐 **Frontend Web (Chat)** | GitHub Pages | Online | [Acessar Interface do Chatbot](https://fonseca0015.github.io/chatBotAWS1/) |
+| ⚡ **Search API (Flask/ChromaDB)** | AWS EC2 (Produção) | Ativo | `http://44.203.191.31:5000/search` |
+| 🔄 **Webhook do Orquestrador** | n8n Cloud | Ativo | `https://unoerpai.app.n8n.cloud/webhook/c7683d30-5ffb-448b-a9cb-2dac0ac443bb` |
+| 📦 **Workflow n8n Exportado** | Repositório | Disponível | [Arquivo JSON do Fluxo](n8n/workflow_uno_erp_helpper.json) |
+| 📞 **Gateway Telefônico (Canal de Voz)** | Telecom | Homologação | Integrado via Twilio / ElevenLabs |
 
-Para detalhes de publicação em nuvem (AWS EC2, Docker, SSL e Nginx), consulte o [Guia de Deploy](docs/10_guia_deploy.md).
+Para detalhes da arquitetura em nuvem (AWS EC2, Nginx, Gunicorn e SSL), consulte o [Guia de Deploy](docs/10_guia_deploy.md).
 
 ---
 
@@ -60,43 +62,43 @@ O fluxo opera de ponta a ponta com separação estrita de responsabilidades:
 
 ```mermaid
 flowchart LR
-    subgraph Usuarios ["Usuários e Canais"]
-        User(("Usuário"))
-        Web["Frontend Web\n(index.html)"]
-        Voice["Gateway Telefônico\n(Twilio / VoIP)"]
+    subgraph Canais ["Canais e Usuarios"]
+        User["Usuario"]
+        Web["Frontend Web - index.html"]
+        Voice["Gateway Telefonico - Twilio / VoIP"]
     end
 
-    subgraph Hub ["Orquestração de Fluxo"]
-        N8N["n8n Workflow Engine\n(Webhooks & Regras)"]
+    subgraph Orquestracao ["Orquestracao"]
+        N8N["n8n Workflow Hub"]
     end
 
-    subgraph RAG_Retriever ["Recuperador Documental (Search API)"]
-        Flask["API Flask\n(main.py)"]
-        Chroma[("ChromaDB\n(Base Vetorial)")]
+    subgraph RAG_Retriever ["Recuperador RAG"]
+        Flask["API Flask - AWS EC2"]
+        Chroma[("ChromaDB - Base Vetorial")]
     end
 
-    subgraph AI_Engine ["Inteligência e Voz"]
-        OpenAI["OpenAI GPT-4o-mini\n(Expansão, Rerank e Geração)"]
-        Eleven["ElevenLabs API\n(Text-to-Speech)"]
+    subgraph AI_Engine ["Inteligencia e Voz"]
+        OpenAI["OpenAI GPT-4o-mini"]
+        Eleven["ElevenLabs API"]
     end
 
-    User -->|Texto| Web
-    User -->|Voz| Voice
+    User -->|"Texto"| Web
+    User -->|"Voz"| Voice
 
-    Web -->|HTTP POST| N8N
-    Voice -->|Áudio / STT| N8N
+    Web -->|"HTTP POST"| N8N
+    Voice -->|"Audio STT"| N8N
 
-    N8N -->|1. Busca /search| Flask
-    Flask <-->|2. Consulta Vetorial / Lexical| Chroma
-    Flask <-->|3. Expansão & Rerank| OpenAI
-    Flask -->|4. Top Documentos Relevantes| N8N
+    N8N -->|"1. Busca POST /search"| Flask
+    Flask <-->|"2. Similaridade Cosseno"| Chroma
+    Flask <-->|"3. Expansao e Rerank"| OpenAI
+    Flask -->|"4. Documentos Relevantes"| N8N
 
-    N8N -->|5. Síntese Contextualizada| OpenAI
-    OpenAI -->|6. Resposta| N8N
+    N8N -->|"5. Sintese com Contexto"| OpenAI
+    OpenAI -->|"6. Resposta Estruturada"| N8N
 
-    N8N -->|7a. HTML com Fontes| Web
-    N8N -->|7b. Texto p/ Áudio| Eleven
-    Eleven -->|8. Áudio Sintetizado| Voice
+    N8N -->|"7a. HTML com Fontes"| Web
+    N8N -->|"7b. Texto para Fala"| Eleven
+    Eleven -->|"8. Audio de Voz"| Voice
 ```
 
 Para a especificação completa de cada componente e fluxos de dados, acesse [Arquitetura e Fluxos](docs/04_arquitetura_e_fluxos.md).
@@ -124,22 +126,37 @@ Consulte o documento completo em [Especificação de Requisitos](docs/02_requisi
 
 ---
 
-## 5. Tecnologias Utilizadas
+## 5. Workflow do n8n (Exportado e Documentado)
+
+O fluxo oficial que orquestra a inteligência do ERP Helpper está versionado e documentado no repositório:
+- 📁 **Arquivo para importação direta:** [`n8n/workflow_uno_erp_helpper.json`](n8n/workflow_uno_erp_helpper.json)
+- 📖 **Documentação completa nó a nó:** [Workflow do n8n](docs/11_workflow_n8n.md)
+
+### Destaques do Workflow:
+1. **Nós Webhook:** Recebem a pergunta enviada pela interface web ou canal de telefonia.
+2. **Nó HTTP Request:** Consulta a Search API Flask hospedada na AWS (`http://44.203.191.31:5000/search`).
+3. **Agregação em JavaScript:** Agrupa os trechos dos documentos e consolida as fontes oficiais.
+4. **AI Agent (LangChain) com `gpt-4o-mini`:** Aplica regras rigorosas de amigabilidade, didática passo a passo, proibição de alucinações e tratamento amigável de saudações.
+5. **Higienização em JavaScript:** Converte marcações em HTML seguro e filtra links externos, permitindo apenas URLs do portal oficial `unoerpwiki.herokuapp.com`.
+
+---
+
+## 6. Tecnologias Utilizadas
 
 - **Back-end & API:** Python 3.10+, Flask, tiktoken, python-dotenv, tqdm.
-- **Base Vetorial:** ChromaDB (HNSW, métrica de cosseno).
+- **Base Vetorial:** ChromaDB (HNSW, métrica de similaridade por cosseno).
 - **Inteligência Artificial:** OpenAI `text-embedding-3-small` (1536 dimensões) e `gpt-4o-mini`.
 - **Orquestração:** n8n Cloud / Community Edition, JavaScript para formatação de saídas.
 - **Síntese de Voz:** ElevenLabs API (modelos Multilingual v2 / Flash / Turbo).
 - **Frontend:** HTML5, CSS3 moderno, Vanilla JavaScript.
-- **Infraestrutura & CI/CD:** Docker, Docker Compose, GitHub Actions.
+- **Infraestrutura & CI/CD:** Docker, Docker Compose, AWS EC2, GitHub Actions.
 - **Ecossistema:** Twilio/VoIP, Lovable, Bubble, OpenClaw, ViverdeIA, MCP e WhatsApp.
 
 Detalhes completos e bibliografia em [Tecnologias e Integrações](docs/08_tecnologias_e_integracoes.md).
 
 ---
 
-## 6. Como Rodar o Projeto Localmente
+## 7. Como Rodar o Projeto Localmente
 
 ### 1. Clonar o Repositório
 ```bash
@@ -182,7 +199,7 @@ OPENAI_API_KEY=sk-proj-sua-chave-aqui
 ```bash
 python main.py
 ```
-> O ChromaDB será carregado ou populado automaticamente a partir do arquivo `knowledge_base.json`. O servidor responderá na porta `5000`.
+> O ChromaDB será carregado ou populado automaticamente a partir do arquivo `knowledge_base.json` (531 artigos). O servidor responderá na porta `5000`.
 
 ### 6. Testar o Endpoint `/search`
 ```bash
@@ -198,7 +215,7 @@ Consulte o passo a passo ilustrado em [Guia de Execução Local](docs/09_guia_ex
 
 ---
 
-## 7. Execução com Docker
+## 8. Execução com Docker
 
 Caso prefira rodar toda a aplicação em containers isolados:
 ```bash
@@ -214,7 +231,7 @@ docker compose logs -f
 
 ---
 
-## 8. Estrutura de Diretórios e Documentação Modular
+## 9. Estrutura de Diretórios e Documentação Modular
 
 O repositório está organizado de forma clara e modular:
 
@@ -234,7 +251,11 @@ chatBotAWS1/
 │   ├── 07_relatorio_riscos_e_custos.md  # Análise de custos ElevenLabs, n8n e OpenAI
 │   ├── 08_tecnologias_e_integracoes.md  # Stack, ferramentas e referências
 │   ├── 09_guia_execucao_local.md      # Manual de configuração local detalhado
-│   └── 10_guia_deploy.md              # Deploy AWS, Docker, Nginx, SSL e Links
+│   ├── 10_guia_deploy.md              # Deploy AWS, Docker, Nginx, SSL e Links
+│   └── 11_workflow_n8n.md             # Documentação completa do fluxo n8n
+├── n8n/
+│   └── workflow_uno_erp_helpper.json  # Workflow oficial exportado para importação
+├── test_api.py                        # Script de validação e testes da API
 ├── .env.example                       # Modelo de variáveis de ambiente
 ├── .gitignore                         # Regras de exclusão do Git
 ├── Dockerfile                         # Imagem Docker da aplicação
@@ -248,17 +269,18 @@ chatBotAWS1/
 
 ---
 
-## 9. Integração Contínua (CI / GitHub Actions)
+## 10. Integração Contínua (CI / GitHub Actions)
 
 O repositório possui uma pipeline automatizada no arquivo [`.github/workflows/ci.yml`](.github/workflows/ci.yml) que é executada a cada `push` e `pull_request` nas branches principais:
 1. Validação de sintaxe Python com `py_compile`.
 2. Análise estática de código com `flake8` contra erros de execução.
 3. Validação estrutural do arquivo de conhecimento `knowledge_base.json`.
-4. Checagem de integridade dos arquivos obrigatórios do ecossistema.
+4. Validação do arquivo JSON do workflow do n8n (`n8n/workflow_uno_erp_helpper.json`).
+5. Checagem de integridade dos arquivos obrigatórios do ecossistema.
 
 ---
 
-## 10. Histórico de Problemas e Mitigações de Custos
+## 11. Histórico de Problemas e Mitigações de Custos
 
 Um dos marcos do projeto foi o diagnóstico e resolução do problema na busca semântica documental:
 - **Causa Raiz:** Ausência temporária de tokens da OpenAI e desalinhamento na persistência de coleções do ChromaDB.
@@ -269,7 +291,7 @@ Para leitura completa do relatório executivo, veja o [Relatório de Riscos e Cu
 
 ---
 
-## 11. Autoria e Licença
+## 12. Autoria e Licença
 
 - **Projeto:** ERP Helpper — Assistente Inteligente para UNO ERP
 - **Alinhamento e Homologação:** Tiago Garcia Amato & Cesar

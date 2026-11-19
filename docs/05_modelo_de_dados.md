@@ -5,9 +5,9 @@ O modelo conceitual descreve as principais entidades de informação manipuladas
 
 ```mermaid
 erDiagram
-    DOCUMENTO ||--o{ CHUNK : "Contém (1,1 para 0,n)"
-    CHUNK ||--o{ RESULTADO_CONSULTA : "Pode aparecer em (1,1 para 0,n)"
-    CONSULTA ||--o{ RESULTADO_CONSULTA : "Retorna (1,1 para 0,n)"
+    DOCUMENTO ||--o{ CHUNK : "contem"
+    CHUNK ||--o{ RESULTADO_CONSULTA : "aparece_em"
+    CONSULTA ||--o{ RESULTADO_CONSULTA : "retorna"
 
     DOCUMENTO {
         int documento_id
@@ -113,7 +113,7 @@ No código da Search API (`main.py`), a persistência vetorial é gerenciada pel
 ---
 
 ## 4. Estrutura do Arquivo `knowledge_base.json`
-O arquivo `knowledge_base.json` na raiz do projeto é a fonte primária de ingestão. Cada item do array segue o esquema:
+O arquivo `knowledge_base.json` na raiz do projeto é a fonte primária de ingestão (531 artigos catalogados). Cada item do array segue o esquema:
 ```json
 [
   {

@@ -1,0 +1,290 @@
+{
+  "id": "zL2iWYjUyad11JgJ",
+  "name": "ERP Helpper - UNO ERP AI Workflow",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://44.203.191.31:5000/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.body.pergunta || $json.body.query || $json.body.user_message }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        368,
+        -288
+      ],
+      "id": "d5707b39-7690-40f5-bb29-9eeab7259c64",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c7683d30-5ffb-448b-a9cb-2dac0ac443bb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -288
+      ],
+      "id": "70a4a209-5b91-43df-97ae-7e8d67a7009a",
+      "name": "Webhook",
+      "webhookId": "c7683d30-5ffb-448b-a9cb-2dac0ac443bb"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=---\nCONTEXTO:\n{{ $json.contexto }}\n---\nFONTES:\n{{ $json.fontes }}\n---\nPERGUNTA DO USUÁRIO:\n{{ (() => {\n  try { return $('Webhook').item.json.body.pergunta; } catch (e) {}\n  try { return $('Webhook1').item.json.body.pergunta; } catch (e) {}\n  return \"\";\n})() }}\n---",
+        "options": {
+          "systemMessage": "Você é o Assistente Virtual da UNO ERP, um especialista amigável e prestativo. Sua principal missão é ajudar os usuários a resolverem suas dúvidas sobre o sistema.\n\nSuas regras são:\n\nSeja Amigável e Intuitivo: Use uma linguagem clara, simples e direta. Você pode usar emojis para tornar a comunicação mais leve e visual (por exemplo: ✅, ❌, 👉, 💡).\n\nBaseie-se nos Fatos: Responda exclusivamente com base nas informações fornecidas na seção \"CONTEXTO\". Não invente funcionalidades ou passos que não estejam descritos ali.\n\nSeja Objetivo: Vá direto ao ponto. Se a pergunta for sobre um processo, organize a resposta em passos claros (ex: 1º Passo, 2º Passo...).\n\nCite a Fonte: Ao final de cada resposta baseada no contexto, sempre inclua a(s) fonte(s) usadas, listando as URLs fornecidas na seção \"FONTES\". Se atente a devolver na referência apenas a url contida no json \"{{ $json.url }}\". Qualquer outra URL que venha do texto fora disso é algo do conteúdo e não deve ser citada em \"referência\", apenas no corpo do conteudo da resposta.\n\nSe Não Souber, Diga: Se a resposta para a pergunta do usuário não estiver no contexto fornecido, responda de forma honesta:\n\n💡 Puxa, não encontrei informações sobre isso na minha base de conhecimento. Você poderia tentar reformular a pergunta?\n\nInterações Sociais e Saudações:\n\nSe o usuário enviar apenas uma saudação simples (por exemplo: “oi”, “olá”, “bom dia”, “boa tarde”, “tudo bem?”, “como vai?”, etc.), não use o contexto técnico.\n\nNesse caso, apenas cumprimente de volta de forma simpática e breve, algo como:\n\nOlá! 😊 Como posso te ajudar hoje com o UNO ERP?\n\nSe o usuário fizer uma pergunta sobre o sistema (mencionar funcionalidades, erros, processos, módulos, relatórios, etc.), aí sim use o CONTEXTO para elaborar a resposta.\n\n- Analise a intenção do usuário: se o usuário relatar um problema genérico (ex: \"erro de cadastro de cep\"), e o contexto contiver guias de solução de problemas relacionados (como CEP não localizado, cadastro de municípios/bairros ou parametrização de CEP), use essas instruções para orientá-lo proativamente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -288
+      ],
+      "id": "5dfe5355-f6d9-46e1-a139-7e143cc1aaef",
+      "name": "AI Agent",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        -32
+      ],
+      "id": "6791a91f-1a43-43f3-aab7-5cbca273e20b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "iia1eqLPXoAdtqI8",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1520,
+        -288
+      ],
+      "id": "f9d9bbdb-6fb0-4b73-b072-c6f754e10d99",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fa6fc9d-6a81-4dd1-88ce-68827c1d5447",
+              "name": "resposta",
+              "value": "={{ $json.resposta }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        -288
+      ],
+      "id": "0af8f80c-d7ee-420d-8359-57aa080313d1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const resposta = item.json.output || \"\";\n\n  let respostaHTML = resposta;\n\n  // 1️⃣ Remover \"### \" do início das linhas (títulos em Markdown)\n  respostaHTML = respostaHTML.replace(/^###\\s?/gm, \"\");\n\n  // 2️⃣ Converter **texto** em <strong>texto</strong>\n  respostaHTML = respostaHTML.replace(/\\*\\*(.*?)\\*\\*/g, \"<strong>$1</strong>\");\n\n  // 3️⃣ [NOVO] Converter links [texto](url) para <a>, mas APENAS se a URL for do \"unoerpwiki\"\n  \n  // Regex para encontrar o padrão [texto](url)\n  const linkRegex = /\\[(.*?)\\]\\((.*?)\\)/g;\n  \n  // Usamos uma função como segundo argumento do 'replace'\n  respostaHTML = respostaHTML.replace(linkRegex, (match, texto, url) => {\n    // match: A string inteira, ex: \"[UNO ERP Wiki](https://unoerp...)\"\n    // texto: O 1º grupo de captura, ex: \"UNO ERP Wiki\"\n    // url:   O 2º grupo de captura, ex: \"https://unoerpwiki.herokuapp.com/...\"\n    \n    // ⬇️ Esta é a sua lógica de filtro!\n    if (url.includes('unoerpwiki.herokuapp.com')) {\n      // Se a URL contém o prefixo, converte para HTML\n      // Adicionei target=\"_blank\" para abrir o link em uma nova aba\n      return `<a href=\"${url}\" target=\"_blank\">${texto}</a>`;\n    } else {\n      // Se não for a URL desejada, retorna o texto original sem formatar\n      return match;\n    }\n  });\n\n  // 4️⃣ Converter quebras de linha em <br> (Mantido no final)\n  respostaHTML = respostaHTML.replace(/\\n/g, \"<br>\");\n\n  return {\n    json: {\n      resposta: respostaHTML\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -288
+      ],
+      "id": "a2ab76c8-c6ee-4943-ab47-84bd3abe349b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const documentos = $input.all();\nlet contextoUnificado = \"\";\nlet fontesUnificadas = [];\n\ndocumentos.forEach((doc, index) => {\n  const d = doc.json;\n  if (d.texto_completo) {\n    contextoUnificado += `\\n\\n--- DOCUMENTO ${index + 1}: ${d.titulo || ''} ---\\n${d.texto_completo}`;\n  }\n  if (d.url && !fontesUnificadas.includes(d.url)) {\n    fontesUnificadas.push(d.url);\n  }\n});\n\n// Captura a pergunta a partir da entrada que veio do Webhook inicial\nlet perguntaOriginal = \"\";\ntry {\n  perguntaOriginal = $('Webhook').first().json.body.pergunta || $('Webhook').first().json.body.query || \"\";\n} catch (e) {\n  perguntaOriginal = \"\";\n}\n\nreturn [{\n  json: {\n    contexto: contextoUnificado,\n    fontes: fontesUnificadas.join(\"\\n\"),\n    pergunta: perguntaOriginal\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        -288
+      ],
+      "id": "e7b83c9e-bd8e-4cc0-b248-fe592f3093de",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ee72ab4c-cf1b-4b3b-a8cd-ca8ce6260556",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        -16
+      ],
+      "id": "9b5e5a15-2095-4f8d-a036-f006df891a9e",
+      "name": "Webhook1",
+      "webhookId": "ee72ab4c-cf1b-4b3b-a8cd-ca8ce6260556"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        288
+      ],
+      "id": "31de0b5d-bb52-4333-a87d-ca57018ca581",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "rROdQV83anbl0ua0",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}

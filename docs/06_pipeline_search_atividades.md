@@ -9,58 +9,58 @@ A rota `POST /search` da API Flask é o coração do sistema de recuperação do
 
 ```mermaid
 flowchart TD
-    Start(["Início da rota POST /search"]) --> Recv["Recebe JSON com 'query' ou 'pergunta'"]
+    Start(["Inicio da rota POST /search"]) --> Recv["Recebe JSON com query ou pergunta"]
     
-    Recv --> CheckQuery{"Campo de pergunta\npresente e válido?"}
-    CheckQuery -- Não --> Err400["Retorna HTTP 400 Bad Request\n('query' ou 'pergunta' obrigatório)"]
-    Err400 --> EndSearch(["Fim da Requisição"])
+    Recv --> CheckQuery{"Campo de pergunta presente e valido?"}
+    CheckQuery -->|"Nao"| Err400["Retorna HTTP 400 Bad Request: query ou pergunta obrigatorio"]
+    Err400 --> EndSearch(["Fim da Requisicao"])
 
-    CheckQuery -- Sim --> StoreQuery["Armazena pergunta original\ne inicia cronômetro de busca"]
+    CheckQuery -->|"Sim"| StoreQuery["Armazena pergunta original e inicia cronometro de busca"]
     
-    %% Etapa 1: Expansão
-    StoreQuery --> Step1["Etapa 1: Expansão da Consulta via GPT-4o-mini"]
-    Step1 --> ExpResult{"Expansão via LLM\nteve sucesso?"}
-    ExpResult -- Sim --> ParseExp["Extrai termos alternativos e sinônimos operacionais"]
-    ExpResult -- Não --> FallbackExp["Usa estritamente a pergunta original"]
-    ParseExp --> CombineQueries["Compõe lista final de consultas para busca"]
+    %% Etapa 1: Expansao
+    StoreQuery --> Step1["Etapa 1: Expansao da Consulta via GPT-4o-mini"]
+    Step1 --> ExpResult{"Expansao via LLM teve sucesso?"}
+    ExpResult -->|"Sim"| ParseExp["Extrai termos alternativos e sinonimos operacionais"]
+    ExpResult -->|"Nao"| FallbackExp["Usa estritamente a pergunta original"]
+    ParseExp --> CombineQueries["Compoe lista final de consultas para busca"]
     FallbackExp --> CombineQueries
 
-    %% Etapa 2: Busca Semântica
-    CombineQueries --> LoopSemantico["Etapa 2: Para cada variação de consulta:\n- Gera embedding (text-embedding-3-small)\n- Consulta top 8 vizinhos no ChromaDB (cosseno)\n- Acumula candidatos semânticos"]
+    %% Etapa 2: Busca Semantica
+    CombineQueries --> LoopSemantico["Etapa 2: Para cada variacao de consulta: Gera embedding e busca top 8 no ChromaDB"]
     
     %% Etapa 3: Busca Lexical
-    LoopSemantico --> Step3["Etapa 3: Busca Lexical Simples (Keyword Matching)"]
-    Step3 --> ScanDocs["Varre títulos, palavras-chave e textos completos no ChromaDB"]
-    ScanDocs --> ExactMatchCheck{"Encontrou Match Exato\n(ex: 'rejeição 201' -> Doc 314)?"}
-    ExactMatchCheck -- Sim --> FlagExact["Sinaliza Candidato de Match Exato com Prioridade Máxima"]
-    ExactMatchCheck -- Não --> AddLexical["Adiciona candidatos textuais ao pool"]
+    LoopSemantico --> Step3["Etapa 3: Busca Lexical Simples por palavras-chave"]
+    Step3 --> ScanDocs["Varre titulos, palavras-chave e textos completos no ChromaDB"]
+    ScanDocs --> ExactMatchCheck{"Encontrou Match Exato de Rejeicao, ex: rejeicao 201 no Doc 314?"}
+    ExactMatchCheck -->|"Sim"| FlagExact["Sinaliza Candidato de Match Exato com Prioridade Maxima"]
+    ExactMatchCheck -->|"Nao"| AddLexical["Adiciona candidatos textuais ao pool"]
     FlagExact --> AddLexical
 
-    %% Etapa 4: Mesclagem e Deduplicação
-    AddLexical --> Step4["Etapa 4: Mesclar e Desduplicar"]
-    Step4 --> Dedup["Une candidatos semânticos e textuais\nRemove duplicatas preservando document_id único"]
+    %% Etapa 4: Mesclagem e Deduplicacao
+    AddLexical --> Step4["Etapa 4: Mesclar e Desduplicar candidatos por document_id"]
+    Step4 --> Dedup["Une candidatos semanticos e textuais eliminando duplicatas"]
     
-    Dedup --> CheckEmpty{"Existem candidatos\nno pool final?"}
-    CheckEmpty -- Não --> ReturnEmpty["Retorna Lista Vazia JSON [] (HTTP 200)"]
+    Dedup --> CheckEmpty{"Existem candidatos no pool final?"}
+    CheckEmpty -->|"Nao"| ReturnEmpty["Retorna Lista Vazia JSON [] com HTTP 200"]
     ReturnEmpty --> EndSearch
 
-    %% Etapa 5: Rerank Híbrido / Condicional
-    CheckEmpty -- Sim --> CheckExactCondition{"Candidato de Match Exato\nidentificado (Doc 314)?"}
+    %% Etapa 5: Rerank Hibrido / Condicional
+    CheckEmpty -->|"Sim"| CheckExactCondition{"Candidato de Match Exato identificado para Doc 314?"}
     
-    CheckExactCondition -- Sim --> BypassRerank["Etapa 5: BYPASS DO RERANK VIA LLM\nPrioriza Doc 314 + top 4 apoios semânticos\n(Economia de tokens e menor latência)"]
+    CheckExactCondition -->|"Sim"| BypassRerank["Etapa 5: BYPASS DO RERANK VIA LLM: Prioriza Doc 314 + top 4 apoios semanticos"]
     
-    CheckExactCondition -- Não --> LLMRerank["Etapa 5: Reranking via GPT-4o-mini\nEnvia trechos com prompt classificador"]
-    LLMRerank --> LLMResult{"Classificação LLM\nretornou JSON válido?"}
-    LLMResult -- Sim --> UseLLMIds["Seleciona os melhores IDs ranqueados"]
-    LLMResult -- Não --> FallbackSlice["Fallback de Rerank: Seleciona os 5 primeiros candidatos"]
+    CheckExactCondition -->|"Nao"| LLMRerank["Etapa 5: Reranking via GPT-4o-mini com prompt classificador"]
+    LLMRerank --> LLMResult{"Classificacao LLM retornou JSON valido?"}
+    LLMResult -->|"Sim"| UseLLMIds["Seleciona os melhores IDs ranqueados"]
+    LLMResult -->|"Nao"| FallbackSlice["Fallback de Rerank: Seleciona os 5 primeiros candidatos"]
     
     BypassRerank --> Step6["Etapa 6: Montagem da Resposta"]
     UseLLMIds --> Step6
     FallbackSlice --> Step6
 
     %% Etapa 6: Resposta
-    Step6 --> BuildJSON["Coleta metadados completos dos IDs selecionados:\n- categoria\n- texto_completo\n- titulo\n- url"]
-    BuildJSON --> ReturnSuccess["Retorna JSON com documentos (HTTP 200)"]
+    Step6 --> BuildJSON["Coleta metadados completos dos IDs selecionados: categoria, texto, titulo e url"]
+    BuildJSON --> ReturnSuccess["Retorna JSON com documentos encontrados HTTP 200"]
     ReturnSuccess --> EndSearch
 ```
 

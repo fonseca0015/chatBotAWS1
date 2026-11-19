@@ -5,29 +5,29 @@ O diagrama a seguir detalha as interações dos atores (Usuário, Gateway Telef�
 
 ```mermaid
 flowchart LR
-    subgraph Atores
-        U["fa:fa-user Usuário"]
-        GT["fa:fa-phone Gateway Telefônico"]
-        SN1["fa:fa-headset Suporte N1"]
+    subgraph Atores ["Atores do Sistema"]
+        U["Usuario"]
+        GT["Gateway Telefonico"]
+        SN1["Suporte N1"]
     end
 
     subgraph Sistema ["Sistema ERP Helpper"]
-        UC1(["Consultar Dúvida via Chat"])
-        UC2(["Atender Chamada Telefônica"])
-        UC3(["Processar Banco Vetorial"])
-        UC4(["Escalonar para Suporte N1"])
-        UC5(["Registrar Erro / Fallback"])
+        UC1["Consultar Duvida via Chat"]
+        UC2["Atender Chamada Telefonica"]
+        UC3["Processar Banco Vetorial"]
+        UC4["Escalonar para Suporte N1"]
+        UC5["Registrar Erro ou Fallback"]
     end
 
     U --> UC1
     U --> GT
     GT --> UC2
 
-    UC1 -.->|«include»| UC3
-    UC2 -.->|«include»| UC3
+    UC1 -.->|"include"| UC3
+    UC2 -.->|"include"| UC3
 
-    UC3 -.->|«extend» (Sem resposta satisfatória)| UC4
-    UC3 -.->|«extend» (Falha de conexão / transcrição)| UC5
+    UC3 -.->|"extend: Sem resposta satisfatoria"| UC4
+    UC3 -.->|"extend: Falha conexao ou transcricao"| UC5
 
     UC4 --> SN1
 ```
